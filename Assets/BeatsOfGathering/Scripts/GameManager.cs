@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private AudioClip goodHitSound;
     [SerializeField] private AudioClip perfectHitSound;
     [SerializeField] private AudioClip missHitSound;
+    [SerializeField] private AudioClip wowSound;
     [SerializeField] private ParticleSystem perfectHitParticles;
     [SerializeField] private ParticleSystem celebrationParticles;
     public bool startPlaying;
@@ -33,10 +34,10 @@ public class GameManager : MonoBehaviour
 // Celebration meter
     [Header("Celebration Meter")]
     public CelebrationMeter celebrationMeter;   // drag your meter in the Inspector
-    [Range(0f, 1f)] public float addOnNormal  = 0.20f;
-    [Range(0f, 1f)] public float addOnGood    = 0.30f;
-    [Range(0f, 1f)] public float addOnPerfect = 0.45f;
-    [Range(-1f, 0f)] public float addOnMiss   = -0.35f;
+    [Range(0f, 1f)] public float addOnNormal  = 0.010f;
+    [Range(0f, 1f)] public float addOnGood    = 0.020f;
+    [Range(0f, 1f)] public float addOnPerfect = 0.035f;
+    [Range(-1f, 0f)] public float addOnMiss   = -0.025f;
     public bool celebrationReached;
 
 
@@ -68,6 +69,8 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        celebrationParticles.gameObject.SetActive(false);
     }
 
     private void Start()
@@ -97,7 +100,7 @@ public class GameManager : MonoBehaviour
             if (celebrationReached)
             {
                 //Instantiate(perfectHitParticles, transform.position, perfectHitParticles.transform.rotation);      
-                celebrationParticles.Play();  
+                //celebrationParticles.Play();  
             }
 
             if (!theMusic.isPlaying && !resultsScreen.activeInHierarchy)
@@ -143,7 +146,7 @@ public class GameManager : MonoBehaviour
     }
 
 
-//Score per hit precision methods
+    //Score per hit precision methods
     public void NoteHit()
     {
         Debug.Log("Hit on time");
@@ -161,6 +164,15 @@ public class GameManager : MonoBehaviour
         multiplierText.text = "Multiplier: x" + currentMultiplier;
         //currentScore += scorePerNote * currentMultiplier;
         scoreText.text = "Score: " + currentScore;
+
+
+        // Play crowd cheer sound
+        if (celebrationReached)
+        {
+            celebrationParticles.gameObject.SetActive(true);
+            celebrationParticles.Play();  
+            theMusic.PlayOneShot(crowdCheer, 1f);
+        }
     }
 
     public void NormalHit()
@@ -193,7 +205,8 @@ public class GameManager : MonoBehaviour
         if (celebrationMeter) celebrationMeter.Add(addOnPerfect);  // <—
 
 
-        theMusic.PlayOneShot(crowdCheer, 0.7f);
+        theMusic.PlayOneShot(crowdCheer, 0.5f);
+        theMusic.PlayOneShot(wowSound, 1f);
         NoteHit();
     }
     
@@ -207,6 +220,7 @@ public class GameManager : MonoBehaviour
 
         //Reset celebration meter on miss
         if (celebrationMeter) celebrationMeter.Add(addOnMiss); // <—
+
         celebrationParticles.Stop();
         multiplierText.text = "Multiplier: x" + currentMultiplier;
 

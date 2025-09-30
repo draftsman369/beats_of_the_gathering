@@ -10,6 +10,7 @@ public class CelebrationMeter : MonoBehaviour
     public Slider slider;    // optional
     public Image fillImage;  // optional (uses Image.fillAmount)
 
+
     void Update()
     {
         ApplyUI();
