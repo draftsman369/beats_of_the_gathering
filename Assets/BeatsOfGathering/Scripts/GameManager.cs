@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private AudioClip perfectHitSound;
     [SerializeField] private AudioClip missHitSound;
     [SerializeField] private ParticleSystem perfectHitParticles;
+    [SerializeField] private ParticleSystem celebrationParticles;
     public bool startPlaying;
     public BeatScroller beatScroller;
 
@@ -36,6 +37,7 @@ public class GameManager : MonoBehaviour
     [Range(0f, 1f)] public float addOnGood    = 0.30f;
     [Range(0f, 1f)] public float addOnPerfect = 0.45f;
     [Range(-1f, 0f)] public float addOnMiss   = -0.35f;
+    public bool celebrationReached;
 
 
 
@@ -92,45 +94,51 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            if (!theMusic.isPlaying && !resultsScreen.activeInHierarchy)
+            if (celebrationReached)
             {
-                resultsScreen.SetActive(true);
-                normalHitText.text = "Normal Hits: " + normalHits;
-                goodHitText.text = GoodHits.ToString();
-                perfectHitText.text = PerfectHits.ToString();
-                missedHitText.text = "" + MissedHits;
+                //Instantiate(perfectHitParticles, transform.position, perfectHitParticles.transform.rotation);      
+                celebrationParticles.Play();  
+            }
 
-                float totalHit = normalHits + GoodHits + PerfectHits;
-                float percentHit = (totalHit / totalNotes) * 100f;
-                percentHitText.text = percentHit.ToString("F1") + "%";
-
-                string rankVal = "F";
-
-                if (percentHit > 40)
+            if (!theMusic.isPlaying && !resultsScreen.activeInHierarchy)
                 {
-                    rankVal = "D";
-                    if (percentHit > 55)
+                    resultsScreen.SetActive(true);
+                    normalHitText.text = "Normal Hits: " + normalHits;
+                    goodHitText.text = GoodHits.ToString();
+                    perfectHitText.text = PerfectHits.ToString();
+                    missedHitText.text = "" + MissedHits;
+
+                    float totalHit = normalHits + GoodHits + PerfectHits;
+                    float percentHit = (totalHit / totalNotes) * 100f;
+                    percentHitText.text = percentHit.ToString("F1") + "%";
+
+                    string rankVal = "F";
+
+                    if (percentHit > 40)
                     {
-                        rankVal = "C";
-                        if (percentHit > 70)
+                        rankVal = "D";
+                        if (percentHit > 55)
                         {
-                            rankVal = "B";
-                            if (percentHit > 85)
+                            rankVal = "C";
+                            if (percentHit > 70)
                             {
-                                rankVal = "A";
-                                if (percentHit > 95)
+                                rankVal = "B";
+                                if (percentHit > 85)
                                 {
-                                    rankVal = "S";
+                                    rankVal = "A";
+                                    if (percentHit > 95)
+                                    {
+                                        rankVal = "S";
+                                    }
                                 }
                             }
                         }
                     }
+
+                    rankText.text = rankVal;
+                    finalScoreText.text = currentScore.ToString();
+
                 }
-
-                rankText.text = rankVal;
-                finalScoreText.text = currentScore.ToString();
-
-            }
         }
     }
 
@@ -198,7 +206,8 @@ public class GameManager : MonoBehaviour
         theMusic.PlayOneShot(missHitSound, 0.7f);
 
         //Reset celebration meter on miss
-        if (celebrationMeter) celebrationMeter.ResetCelebrationMeter(); // <—
+        if (celebrationMeter) celebrationMeter.Add(addOnMiss); // <—
+        celebrationParticles.Stop();
         multiplierText.text = "Multiplier: x" + currentMultiplier;
 
     }

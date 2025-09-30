@@ -4,7 +4,7 @@ using UnityEngine.UI;
 public class CelebrationMeter : MonoBehaviour
 {
     [Range(0f, 1f)] public float value = 0f;
-    ParticleSystem celebrationVFX;
+    public ParticleSystem celebrationVFX;
 
     [Header("UI (assign one)")]
     public Slider slider;    // optional
@@ -17,10 +17,13 @@ public class CelebrationMeter : MonoBehaviour
         if (value >= 1f)
         {
             Debug.Log("🎉 Celebration Meter Full!");
-            Instantiate(celebrationVFX, transform.position, celebrationVFX.transform.rotation);
-
+            //Instantiate(celebrationVFX, transform.position, celebrationVFX.transform.rotation);
+            GameManager.Instance.celebrationReached = true;
             //value = 0f; // reset after logging
             ApplyUI();
+        }else
+        {
+            GameManager.Instance.celebrationReached = false;
         }
     }
 
@@ -35,6 +38,7 @@ public class CelebrationMeter : MonoBehaviour
         if (slider) slider.value = value;
         if (fillImage) fillImage.fillAmount = value;
     }
+
 
     public void ResetCelebrationMeter()
     {
