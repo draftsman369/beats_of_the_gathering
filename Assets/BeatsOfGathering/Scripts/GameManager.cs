@@ -28,8 +28,18 @@ public class GameManager : MonoBehaviour
     public Text scoreText;
     public Text multiplierText;
 
+    //Celebration Meter
+// Celebration meter
+    [Header("Celebration Meter")]
+    public CelebrationMeter celebrationMeter;   // drag your meter in the Inspector
+    [Range(0f, 1f)] public float addOnNormal  = 0.20f;
+    [Range(0f, 1f)] public float addOnGood    = 0.30f;
+    [Range(0f, 1f)] public float addOnPerfect = 0.45f;
+    [Range(-1f, 0f)] public float addOnMiss   = -0.35f;
 
-//Results Screen Stats(Reset to private later)
+
+
+    //Results Screen Stats(Reset to private later)
     public float totalNotes;
     public float normalHits;
     public float GoodHits;
@@ -150,6 +160,8 @@ public class GameManager : MonoBehaviour
         currentScore += scorePerNote * currentMultiplier;
         normalHits++;
         theMusic.PlayOneShot(normalHitSound, 0.7f);
+        if (celebrationMeter) celebrationMeter.Add(addOnNormal);   // <—
+
         NoteHit();
     }
 
@@ -158,6 +170,8 @@ public class GameManager : MonoBehaviour
         currentScore += scorePerGoodNote * currentMultiplier;
         GoodHits++;
         theMusic.PlayOneShot(goodHitSound, 0.7f);
+        if (celebrationMeter) celebrationMeter.Add(addOnGood);     // <—
+
         NoteHit();
     }
 
@@ -168,6 +182,9 @@ public class GameManager : MonoBehaviour
         PerfectHits++;
         Instantiate(perfectHitParticles, transform.position, perfectHitParticles.transform.rotation);
         theMusic.PlayOneShot(perfectHitSound, 0.7f);
+        if (celebrationMeter) celebrationMeter.Add(addOnPerfect);  // <—
+
+
         theMusic.PlayOneShot(crowdCheer, 0.7f);
         NoteHit();
     }
@@ -179,6 +196,9 @@ public class GameManager : MonoBehaviour
         currentMultiplier = 1;
         multiplierTracker = 0;
         theMusic.PlayOneShot(missHitSound, 0.7f);
+
+        //Reset celebration meter on miss
+        if (celebrationMeter) celebrationMeter.ResetCelebrationMeter(); // <—
         multiplierText.text = "Multiplier: x" + currentMultiplier;
 
     }
