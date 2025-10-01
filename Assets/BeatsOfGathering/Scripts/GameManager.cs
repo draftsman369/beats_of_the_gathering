@@ -1,15 +1,17 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 public class GameManager : MonoBehaviour
 {
 
-//Singleton
+    //Singleton
     public static GameManager Instance;
 
-//sfx //
+
+    //sfx //
     public AudioSource theMusic;
     [SerializeField] public AudioClip crowdCheer;
-    [SerializeField] private AudioClip normalHitSound;  
+    [SerializeField] private AudioClip normalHitSound;
     [SerializeField] private AudioClip goodHitSound;
     [SerializeField] private AudioClip perfectHitSound;
     [SerializeField] private AudioClip missHitSound;
@@ -19,7 +21,7 @@ public class GameManager : MonoBehaviour
     public bool startPlaying;
     public BeatScroller beatScroller;
 
-//Score variables
+    //Score variables
     public int currentScore;
     public int currentMultiplier;
     public int multiplierTracker;
@@ -30,14 +32,18 @@ public class GameManager : MonoBehaviour
     public Text scoreText;
     public Text multiplierText;
 
+
+    [SerializeField] private TextMeshProUGUI comboText;
+    public int combo;
+
     //Celebration Meter
-// Celebration meter
+    // Celebration meter
     [Header("Celebration Meter")]
     public CelebrationMeter celebrationMeter;   // drag your meter in the Inspector
-    [Range(0f, 1f)] public float addOnNormal  = 0.010f;
-    [Range(0f, 1f)] public float addOnGood    = 0.020f;
+    [Range(0f, 1f)] public float addOnNormal = 0.010f;
+    [Range(0f, 1f)] public float addOnGood = 0.020f;
     [Range(0f, 1f)] public float addOnPerfect = 0.035f;
-    [Range(-1f, 0f)] public float addOnMiss   = -0.025f;
+    [Range(-1f, 0f)] public float addOnMiss = -0.025f;
     public bool celebrationReached;
 
 
@@ -61,6 +67,7 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
+        comboText.gameObject.SetActive(false);
         if (Instance == null)
         {
             Instance = this;
@@ -80,8 +87,8 @@ public class GameManager : MonoBehaviour
         scoreText.text = "Score: " + currentScore;
 
         totalNotes = FindObjectsByType<NoteObject>(FindObjectsSortMode.None).Length;
-    }    
-    
+    }
+
 
     //Manage score and ranking
     private void Update()
@@ -104,44 +111,44 @@ public class GameManager : MonoBehaviour
             }
 
             if (!theMusic.isPlaying && !resultsScreen.activeInHierarchy)
+            {
+                resultsScreen.SetActive(true);
+                normalHitText.text = "Normal Hits: " + normalHits;
+                goodHitText.text = GoodHits.ToString();
+                perfectHitText.text = PerfectHits.ToString();
+                missedHitText.text = "" + MissedHits;
+
+                float totalHit = normalHits + GoodHits + PerfectHits;
+                float percentHit = (totalHit / totalNotes) * 100f;
+                percentHitText.text = percentHit.ToString("F1") + "%";
+
+                string rankVal = "F";
+
+                if (percentHit > 40)
                 {
-                    resultsScreen.SetActive(true);
-                    normalHitText.text = "Normal Hits: " + normalHits;
-                    goodHitText.text = GoodHits.ToString();
-                    perfectHitText.text = PerfectHits.ToString();
-                    missedHitText.text = "" + MissedHits;
-
-                    float totalHit = normalHits + GoodHits + PerfectHits;
-                    float percentHit = (totalHit / totalNotes) * 100f;
-                    percentHitText.text = percentHit.ToString("F1") + "%";
-
-                    string rankVal = "F";
-
-                    if (percentHit > 40)
+                    rankVal = "D";
+                    if (percentHit > 55)
                     {
-                        rankVal = "D";
-                        if (percentHit > 55)
+                        rankVal = "C";
+                        if (percentHit > 70)
                         {
-                            rankVal = "C";
-                            if (percentHit > 70)
+                            rankVal = "B";
+                            if (percentHit > 85)
                             {
-                                rankVal = "B";
-                                if (percentHit > 85)
+                                rankVal = "A";
+                                if (percentHit > 95)
                                 {
-                                    rankVal = "A";
-                                    if (percentHit > 95)
-                                    {
-                                        rankVal = "S";
-                                    }
+                                    rankVal = "S";
                                 }
                             }
                         }
                     }
-
-                    rankText.text = rankVal;
-                    finalScoreText.text = currentScore.ToString();
-
                 }
+
+                rankText.text = rankVal;
+                finalScoreText.text = currentScore.ToString();
+
+            }
         }
     }
 
@@ -149,6 +156,7 @@ public class GameManager : MonoBehaviour
     //Score per hit precision methods
     public void NoteHit()
     {
+        
         Debug.Log("Hit on time");
         multiplierTracker++;
 
@@ -170,9 +178,16 @@ public class GameManager : MonoBehaviour
         if (celebrationReached)
         {
             celebrationParticles.gameObject.SetActive(true);
-            celebrationParticles.Play();  
+            celebrationParticles.Play();
             theMusic.PlayOneShot(crowdCheer, 1f);
         }
+
+        if(comboText.gameObject.activeInHierarchy == false)
+        {
+            comboText.gameObject.SetActive(true);
+        }
+        combo++;
+        UpdateComboText();
     }
 
     public void NormalHit()
@@ -195,7 +210,7 @@ public class GameManager : MonoBehaviour
         NoteHit();
     }
 
-//I made the celebration effect in perfect, please later move the logic separately when the celebration logig is ready
+    //I made the celebration effect in perfect, please later move the logic separately when the celebration logig is ready
     public void PerfectHit()
     {
         currentScore += scorePerPerfectNote * currentMultiplier;
@@ -209,10 +224,15 @@ public class GameManager : MonoBehaviour
         theMusic.PlayOneShot(wowSound, 1f);
         NoteHit();
     }
-    
+
     public void NoteMissed()
     {
         Debug.Log("Missed Note");
+    
+        combo = 0;
+        UpdateComboText();
+        comboText.gameObject.SetActive(false);
+
         MissedHits++;
         currentMultiplier = 1;
         multiplierTracker = 0;
@@ -224,6 +244,11 @@ public class GameManager : MonoBehaviour
         celebrationParticles.Stop();
         multiplierText.text = "Multiplier: x" + currentMultiplier;
 
+    }
+
+    private void UpdateComboText()
+    {
+        comboText.text = combo.ToString();
     }
 
 }
