@@ -87,20 +87,29 @@ public class GameManager : MonoBehaviour
         scoreText.text = "Score: " + currentScore;
 
         totalNotes = FindObjectsByType<NoteObject>(FindObjectsSortMode.None).Length;
+        Invoke("StartGame", 1f);
     }
 
+    private void StartGame()
+    {
+        startPlaying = true;
+        beatScroller.hasStarted = true;
+        theMusic.Play();
+    }
 
     //Manage score and ranking
     private void Update()
     {
         if (!startPlaying)
         {
+            /*
             if (Input.anyKeyDown)
             {
                 startPlaying = true;
                 beatScroller.hasStarted = true;
                 theMusic.Play();
             }
+            */
         }
         else
         {
